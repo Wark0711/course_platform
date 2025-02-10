@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { navigationLinks } from "@/constants";
+import { canAccessAdminPages } from "@/permissions/general";
+import { getCurrentUser } from "@/services/clerk";
 import { SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { ReactNode, Suspense } from "react";
@@ -21,6 +23,7 @@ function Navbar() {
                 <Link href={'/'} className="mr-auto text-lg hover:underline px-2 flex items-center">Course Platform</Link>
                 <Suspense>
                     <SignedIn>
+                        <AdminLink />
                         {
                             navigationLinks?.map(i => (
                                 <Link href={i.href} key={i.label} className="hover:bg-accent/10 flex items-center px-2">{i.label}</Link>
@@ -40,5 +43,15 @@ function Navbar() {
                 </Suspense>
             </nav>
         </header>
+    )
+}
+
+async function AdminLink() {
+
+    const user = await getCurrentUser()    
+    if (!canAccessAdminPages(user)) return null
+
+    return (
+        <Link href={'/admin'} className="hover:bg-accent/10 flex items-center px-2">Admin</Link>
     )
 }
