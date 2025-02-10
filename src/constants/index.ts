@@ -8,3 +8,18 @@ export const navigationLinks = [
         label: "My Purchases",
     },
 ];
+
+export const adminNavigationLinks = [
+    {
+        href: "/admin/courses",
+        label: "Courses",
+    },
+    {
+        href: "/admin/products",
+        label: "Products",
+    },
+    {
+        href: "/admin/sales",
+        label: "Sales",
+    },
+];
