@@ -9,6 +9,8 @@ import { RequiredLabelIcon } from "@/components/RequiredLabelIcon";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { createCourse } from "../actions/courses";
+import { actionToast } from "@/hooks/use-toast";
 
 export function CourseForm() {
 
@@ -21,7 +23,8 @@ export function CourseForm() {
     })
 
     async function onSubmit(values: z.infer<typeof courseSchema>) {
-
+        const data = await createCourse(values)
+        actionToast({ actionData: data })
     }
 
     return (
