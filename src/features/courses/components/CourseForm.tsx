@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { createCourse } from "../actions/courses";
 import { actionToast } from "@/hooks/use-toast";
 
-export function CourseForm() {
+export function CourseForm({ course }: { course?: { id: string, name: string, description: string } }) {
 
     const form = useForm<z.infer<typeof courseSchema>>({
         resolver: zodResolver(courseSchema),
