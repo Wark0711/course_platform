@@ -10,21 +10,24 @@ import { RequiredLabelIcon } from "@/components/RequiredLabelIcon";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { createSection, updateSection } from "../actions/sections";
+import { actionToast } from "@/hooks/use-toast";
 
-export function SectionForm({ courseId, section }: { courseId: string, section?: { id: string, name: string, status: CourseSectionStatus } }) {
+export function SectionForm({ courseId, section, onSuccess }: { courseId: string, onSuccess?: () => void, section?: { id: string, name: string, status: CourseSectionStatus } }) {
 
     const form = useForm<z.infer<typeof sectionSchema>>({
         resolver: zodResolver(sectionSchema),
-        defaultValues: {
+        defaultValues: section ?? {
             name: '',
             status: 'public'
         }
     })
 
     async function onSubmit(values: z.infer<typeof sectionSchema>) {
-        // const action = course == null ? createCourse : updateCourse.bind(null, course.id)
-        // const data = await action(values)
-        // actionToast({ actionData: data })
+        const action = section == null ? createSection.bind(null, courseId) : updateSection.bind(null, section.id)
+        const data = await action(values)
+        actionToast({ actionData: data })
+        if (!data.error) onSuccess?.()
     }
 
     return (
