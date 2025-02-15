@@ -1,12 +1,17 @@
+'use client'
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { CourseSectionStatus } from "@/drizzle/schema";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { SectionForm } from "./SectionForm";
 
 export function SectionsFormDialog({ courseId, section, children }: { courseId: string, children: ReactNode, section?: { id: string, name: string, status: CourseSectionStatus } }) {
+
+    const [isOpen, setIsOpen] = useState(false)
+
     return (
         <>
-            <Dialog>
+            <Dialog open={isOpen} onOpenChange={setIsOpen}>
                 {children}
 
                 <DialogContent>
@@ -15,7 +20,7 @@ export function SectionsFormDialog({ courseId, section, children }: { courseId: 
                     </DialogHeader>
 
                     <div className="mt-4">
-                        <SectionForm section={section} courseId={courseId} />
+                        <SectionForm section={section} courseId={courseId} onSuccess={() => setIsOpen(false)} />
                     </div>
                 </DialogContent>
             </Dialog>
