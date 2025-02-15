@@ -5,13 +5,13 @@ import { eq } from "drizzle-orm";
 
 export async function getNextCourseSectionOrder(courseId: string) {
     const section = await db.query.courseSectionTable.findFirst({
-      columns: { order: true },
-      where: ({ courseId: courseIdCol }, { eq }) => eq(courseIdCol, courseId),
-      orderBy: ({ order }, { desc }) => desc(order),
+        columns: { order: true },
+        where: ({ courseId: courseIdCol }, { eq }) => eq(courseIdCol, courseId),
+        orderBy: ({ order }, { desc }) => desc(order),
     })
-  
+
     return section ? section.order + 1 : 0
-  }
+}
 
 export async function insertSection(data: typeof courseSectionTable.$inferInsert) {
     const [newSection] = await db.insert(courseSectionTable).values(data).returning()
@@ -40,9 +40,31 @@ export async function removeSection(id: string) {
     const [deletedSection] = await db.delete(courseSectionTable).where(eq(courseSectionTable.id, id)).returning()
     if (deletedSection == null) throw new Error("Failed to delete section")
 
-        revalidateCourseSectionCache({
-            courseId: deletedSection.courseId,
-            id: deletedSection.id
-        })
+    revalidateCourseSectionCache({
+        courseId: deletedSection.courseId,
+        id: deletedSection.id
+    })
     return deletedSection
+}
+
+export async function modifySectionOrders(sectionIds: string[]) {
+    const sections = await Promise.all(
+        sectionIds.map((id, index) =>
+            db
+                .update(courseSectionTable)
+                .set({ order: index })
+                .where(eq(courseSectionTable.id, id))
+                .returning({
+                    courseId: courseSectionTable.courseId,
+                    id: courseSectionTable.id,
+                })
+        )
+    )
+
+    sections.flat().forEach(({ id, courseId }) => {
+        revalidateCourseSectionCache({
+            courseId,
+            id,
+        })
+    })
 }

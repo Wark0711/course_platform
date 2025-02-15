@@ -4,7 +4,7 @@ import { z } from "zod"
 import { sectionSchema } from "../schema/sections"
 import { getCurrentUser } from "@/services/clerk"
 import { canCreateCourseSections, canDeleteteCourseSections, canUpdateCourseSections } from "../permissions/sections"
-import { getNextCourseSectionOrder, insertSection, modifySection, removeSection } from "../db/sections"
+import { getNextCourseSectionOrder, insertSection, modifySection, modifySectionOrders, removeSection } from "../db/sections"
 
 
 export async function createSection(courseId: string, unsafeData: z.infer<typeof sectionSchema>) {
@@ -36,4 +36,13 @@ export async function deleteSection(id: string) {
 
     await removeSection(id)
     return { error: false, message: 'Successfully deleted section of your course' }
+}
+
+export async function updateSectionOrders(sectionIds: string[]) {
+    if (sectionIds.length === 0 || !canUpdateCourseSections(await getCurrentUser())) {
+        return { error: true, message: "Error reordering your sections" }
+    }
+
+    await modifySectionOrders(sectionIds)
+    return { error: false, message: "Successfully reordered your sections" }
 }
