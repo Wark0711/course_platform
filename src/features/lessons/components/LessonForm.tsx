@@ -14,6 +14,7 @@ import { lessonSchema } from "../schema/lessons";
 import { Textarea } from "@/components/ui/textarea";
 import { insertLesson } from "../db/lessons";
 import { createLesson, updateLesson } from "../actions/lessons";
+import { YouTubeVideoPlayer } from "./YouTubeVideoPlayer";
 
 export function LessonForm({ defaultSectionId, sections, onSuccess, lesson }:
     {
@@ -130,7 +131,7 @@ export function LessonForm({ defaultSectionId, sections, onSuccess, lesson }:
                     {
                         videoId && (
                             <div className="aspect-video">
-                                {/* <YouTubeVideoPlayer videoId={videoId} /> */}
+                                <YouTubeVideoPlayer videoId={videoId} />
                             </div>
                         )
                     }
