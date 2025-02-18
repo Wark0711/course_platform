@@ -10,7 +10,7 @@ import { productSchema } from "../schema/products"
 export async function createProduct(unsafeData: z.infer<typeof productSchema>) {
     const { success, data } = productSchema.safeParse(unsafeData)
 
-    if (!success || !canCreateProducts(await getCurrentUser())) {
+    if (!success || canCreateProducts(await getCurrentUser())) {
         return { error: true, message: "There was an error creating your product" }
     }
 
