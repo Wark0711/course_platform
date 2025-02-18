@@ -1,3 +1,6 @@
+import { pppCoupons } from "@/data/pppCoupons"
+import { headers } from "next/headers"
+
 const COUNTRY_HEADER_KEY = "x-user-country"
 
 export function setUserCountryHeader(headers: Headers, country: string | undefined) {
@@ -7,4 +10,19 @@ export function setUserCountryHeader(headers: Headers, country: string | undefin
     else {
         headers.set(COUNTRY_HEADER_KEY, country)
     }
+}
+
+export async function getUserCoupon() {
+    const country = await getUserCountry()
+    if (country == null) return
+
+    const coupon = pppCoupons.find(coupon => coupon.countryCodes.includes(country))
+    if (coupon == null) return
+
+    return { stripeCouponId: coupon.stripeCouponId, discountPercentage: coupon.discountPercentage }
+}
+
+async function getUserCountry() {
+    const head = await headers()
+    return head.get(COUNTRY_HEADER_KEY)
 }

@@ -2,6 +2,7 @@ import { db } from "@/drizzle/db";
 import { courseProductTable, courseTable, productTable, purchaseTable } from "@/drizzle/schema";
 import { asc, countDistinct, eq } from "drizzle-orm";
 import { revalidateProductCache } from "./cache";
+import { wherePublicProducts } from "../permissions/products";
 
 export async function getProducts() {
     return db
@@ -22,20 +23,34 @@ export async function getProducts() {
         .groupBy(productTable.id)
 }
 
+export async function getProductsForConsumers() {
+    return db.query.productTable.findMany({
+        columns: {
+            id: true,
+            name: true,
+            priceInDollars: true,
+            description: true,
+            imageUrl: true,
+        },
+        where: wherePublicProducts,
+        orderBy: asc(productTable.name)
+    })
+}
+
 export async function getProduct(id: string) {
     return db.query.productTable.findFirst({
-      columns: {
-        id: true,
-        name: true,
-        description: true,
-        priceInDollars: true,
-        status: true,
-        imageUrl: true,
-      },
-      where: eq(productTable.id, id),
-      with: { courseProducts: { columns: { courseId: true } } },
+        columns: {
+            id: true,
+            name: true,
+            description: true,
+            priceInDollars: true,
+            status: true,
+            imageUrl: true,
+        },
+        where: eq(productTable.id, id),
+        with: { courseProducts: { columns: { courseId: true } } },
     })
-  }
+}
 
 export async function getCoursesForProduct() {
     return db.query.courseTable.findMany({
@@ -70,7 +85,7 @@ export async function modifyProduct(id: string, data: Partial<typeof productTabl
 
         await trx.delete(courseProductTable).where(eq(courseProductTable.productId, updateProduct.id))
         await trx.insert(courseProductTable).values(data.courseIds.map(courseId => ({ productId: updateProduct.id, courseId })))
-        
+
         return updateProduct
     })
 
