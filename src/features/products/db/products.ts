@@ -1,8 +1,22 @@
 import { db } from "@/drizzle/db";
-import { courseProductTable, courseTable, productTable, purchaseTable } from "@/drizzle/schema";
-import { asc, countDistinct, eq } from "drizzle-orm";
+import { courseProductTable, courseSectionTable, courseTable, lessonTable, productTable, purchaseTable } from "@/drizzle/schema";
+import { and, asc, countDistinct, eq, isNull } from "drizzle-orm";
 import { revalidateProductCache } from "./cache";
 import { wherePublicProducts } from "../permissions/products";
+import { wherePublicLessons } from "@/features/lessons/permissions/lessons";
+import { wherePublicCourseSections } from "@/features/courseSections/permissions/sections";
+
+export async function userOwnsProduct({ productId, userId }: { productId: string, userId: string }) {
+    const existingPurchase = await db.query.purchaseTable.findFirst({
+        where: and(
+            eq(purchaseTable.productId, productId),
+            eq(purchaseTable.userId, userId),
+            isNull(purchaseTable.refundedAt)
+        )
+    })
+
+    return existingPurchase != null
+}
 
 export async function getProducts() {
     return db
@@ -35,6 +49,48 @@ export async function getProductsForConsumers() {
         where: wherePublicProducts,
         orderBy: asc(productTable.name)
     })
+}
+
+export async function getPublicProduct(id: string) {
+    const product = await db.query.productTable.findFirst({
+        columns: {
+            id: true,
+            name: true,
+            description: true,
+            priceInDollars: true,
+            imageUrl: true,
+        },
+        where: and(eq(productTable.id, id), wherePublicProducts),
+        with: {
+            courseProducts: {
+                columns: {},
+                with: {
+                    course: {
+                        columns: { id: true, name: true },
+                        with: {
+                            courseSections: {
+                                columns: { id: true, name: true },
+                                where: wherePublicCourseSections,
+                                orderBy: asc(courseSectionTable.order),
+                                with: {
+                                    lessons: {
+                                        columns: { id: true, name: true, status: true },
+                                        where: wherePublicLessons,
+                                        orderBy: asc(lessonTable.order),
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    })
+
+    if (product == null) return product
+
+    const { courseProducts, ...other } = product
+    return { ...other, courses: product?.courseProducts?.map(cp => cp.course) }
 }
 
 export async function getProduct(id: string) {
