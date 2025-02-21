@@ -51,6 +51,19 @@ export async function getProductsForConsumers() {
     })
 }
 
+export async function getPublicProductForPurchase(id: string) {
+    return db.query.productTable.findFirst({
+        columns: {
+          name: true,
+          id: true,
+          imageUrl: true,
+          description: true,
+          priceInDollars: true,
+        },
+        where: and(eq(productTable.id, id), wherePublicProducts),
+      })
+}
+
 export async function getPublicProduct(id: string) {
     const product = await db.query.productTable.findFirst({
         columns: {
